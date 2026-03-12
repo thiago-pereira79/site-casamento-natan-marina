@@ -207,32 +207,29 @@ export default function App() {
   };
 
   const handleDeleteMessage = async () => {
-    if (messageToDelete === null) return;
+  if (messageToDelete === null) return;
+  
+  const previousMessages = [...messages];
+  setMessages(messages.filter(m => m.id !== messageToDelete));
+  
+  try {
+    const response = await fetch(`/api/messages?id=${messageToDelete}`, {
+      method: 'DELETE',
+    });
     
-    // Optimistic update
-    const previousMessages = [...messages];
-    setMessages(messages.filter(m => m.id !== messageToDelete));
-    
-    try {
-      const response = await fetch(`/api/messages/${messageToDelete}`, { 
-        method: 'DELETE' 
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to delete message');
-      }
-      
-      setMessageToDelete(null);
-      // Refresh from server to be sure
-      fetchMessages();
-    } catch (err) {
-      console.error('Error deleting message:', err);
-      // Rollback on error
-      setMessages(previousMessages);
-      alert('Não foi possível excluir a mensagem. Tente novamente.');
-      setMessageToDelete(null);
+    if (!response.ok) {
+      throw new Error('Failed to delete message');
     }
-  };
+    
+    setMessageToDelete(null);
+    fetchMessages();
+  } catch (err) {
+    console.error('Error deleting message:', err);
+    setMessages(previousMessages);
+    alert('Não foi possível excluir a mensagem. Tente novamente.');
+    setMessageToDelete(null);
+  }
+};
 
   const navItems = [
     { name: 'Home', id: 'home' },
