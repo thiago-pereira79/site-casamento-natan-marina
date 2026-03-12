@@ -19,13 +19,13 @@ O objetivo é oferecer uma experiência simples e elegante para os convidados, r
 - Local e horário da comemoração
 - Galeria de fotos do casal
 - Confirmação de presença via WhatsApp
-- Espaço para mensagens dos convidados
+- Espaço para mensagens e depoimentos dos convidados
 
 ---
 
 ## 🌐 Acesse o site
 
-🔗 *(adicione aqui o link quando publicar o site)*
+🔗 https://site-casamento-natan-marina.vercel.app
 
 ---
 
@@ -39,6 +39,7 @@ O objetivo é oferecer uma experiência simples e elegante para os convidados, r
 - **JavaScript**
 - **Lucide Icons**
 - **Framer Motion** (animações)
+- **Vercel Serverless Functions**
 
 ---
 
@@ -49,7 +50,8 @@ O objetivo é oferecer uma experiência simples e elegante para os convidados, r
 - Galeria de fotos interativa
 - Informações do local com link direto para o **Google Maps**
 - Confirmação de presença via **WhatsApp**
-- Seção para envio de **mensagens e depoimentos dos convidados**
+- Envio de **mensagens e depoimentos dos convidados**
+- Exclusão de mensagens diretamente pelo site
 
 ---
 
@@ -62,11 +64,19 @@ O objetivo é oferecer uma experiência simples e elegante para os convidados, r
 
 ---
 
+## 🚀 Deploy
+
+O projeto está hospedado na **Vercel** e utiliza integração automática com o **GitHub** para deploy contínuo.
+
+Sempre que uma alteração é enviada para o repositório, a Vercel realiza automaticamente um novo deploy do site.
+
+---
+
 ## 📜 Licença
 
 Este projeto utiliza a **licença MIT** para o código-fonte.
 
-As imagens, textos e informações presentes no site pertencem aos respectivos autores e não devem ser reutilizados sem autorização.
+As imagens, textos e informações presentes no site pertencem aos respectivos autores e não devem ser reutilizados sem autorização dos proprietários.
 
 ---
 
