@@ -9,9 +9,9 @@
 
 ---
 
-## 📖 Sobre o projeto
+# 📖 Sobre o projeto
 
-Este projeto consiste em um site desenvolvido para compartilhar as informações do casamento civil de **Natan & Marina**.
+Este projeto consiste em um site desenvolvido para compartilhar as informações do **almoço de celebração do casamento civil de Natan & Marina**, reunindo amigos e familiares para comemorar esse momento especial.
 
 O objetivo é oferecer uma experiência simples e elegante para os convidados, reunindo em um único lugar:
 
@@ -23,27 +23,46 @@ O objetivo é oferecer uma experiência simples e elegante para os convidados, r
 
 ---
 
-## 🌐 Acesse o site
+# 🌐 Acesse o site
 
 🔗 https://site-casamento-natan-marina.vercel.app
 
 ---
 
-## 🛠 Tecnologias utilizadas
+# 🛠 Tecnologias utilizadas
 
-- **React**
-- **TypeScript**
-- **Vite**
-- **HTML5**
-- **CSS3**
-- **JavaScript**
-- **Lucide Icons**
-- **Framer Motion** (animações)
-- **Vercel Serverless Functions**
+### Frontend
+
+- React
+- TypeScript
+- Vite
+- HTML5
+- CSS3
+- JavaScript
+
+### Interface e animações
+
+- Lucide Icons
+- Framer Motion
+
+### Backend
+
+- Node.js
+- Express
+- API REST
+
+### Banco de dados
+
+- Supabase (mensagens)
+- SQLite (RSVP)
+
+### Deploy
+
+- Vercel
 
 ---
 
-## ⚙️ Funcionalidades
+# ⚙️ Funcionalidades
 
 - Página de apresentação do casal
 - Contagem regressiva para o evento
@@ -51,20 +70,48 @@ O objetivo é oferecer uma experiência simples e elegante para os convidados, r
 - Informações do local com link direto para o **Google Maps**
 - Confirmação de presença via **WhatsApp**
 - Envio de **mensagens e depoimentos dos convidados**
-- Exclusão de mensagens diretamente pelo site
+- Exclusão de mensagens pelo modo administrador
+- Validação de mensagens para evitar spam
+- Atualização automática das mensagens
+- API para gerenciamento das mensagens
 
 ---
 
-## 🏗 Estrutura do projeto
+# 🔐 Segurança e controle
 
-- Componentização utilizando **React**
-- Layout **responsivo** para dispositivos móveis e desktop
-- Interface simples, elegante e intuitiva
-- Código organizado para facilitar manutenção e evolução
+O sistema de mensagens possui algumas proteções básicas:
+
+- Limite de envio por IP
+- Bloqueio de mensagens duplicadas
+- Validação de tamanho de nome e mensagem
+- Exclusão de mensagens protegida por senha de administrador
 
 ---
 
-## 🚀 Deploy
+# 🏗 Estrutura do projeto
+
+```
+.
+├── src
+│   ├── components
+│   ├── assets
+│   └── App.tsx
+│
+├── server.ts
+│   Backend Express + API
+│
+├── database
+│   SQLite (RSVP)
+│
+├── package.json
+├── vite.config.ts
+├── tsconfig.json
+└── README.md
+```
+
+---
+
+# 🚀 Deploy
 
 O projeto está hospedado na **Vercel** e utiliza integração automática com o **GitHub** para deploy contínuo.
 
@@ -72,7 +119,7 @@ Sempre que uma alteração é enviada para o repositório, a Vercel realiza auto
 
 ---
 
-## 📜 Licença
+# 📜 Licença
 
 Este projeto utiliza a **licença MIT** para o código-fonte.
 
@@ -80,6 +127,6 @@ As imagens, textos e informações presentes no site pertencem aos respectivos a
 
 ---
 
-## 👨‍💻 Autor
+# 👨‍💻 Autor
 
 Desenvolvido por **Thiago Pereira**

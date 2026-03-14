@@ -1,35 +1,54 @@
-import { VercelRequest, VercelResponse } from '@vercel/node'
+import { supabase } from '../src/lib/supabase'
 
-let messages: any[] = []
+export default async function handler(req, res) {
 
-export default function handler(req: VercelRequest, res: VercelResponse) {
-
+  // BUSCAR MENSAGENS
   if (req.method === 'GET') {
-    return res.status(200).json(messages)
-  }
 
-  if (req.method === 'POST') {
-    const { name, message } = req.body
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .order('created_at', { ascending: false })
 
-    const newMessage = {
-      id: Date.now(),
-      name,
-      message,
-      created_at: new Date()
+    if (error) {
+      return res.status(500).json({ error: error.message })
     }
 
-    messages.unshift(newMessage)
-
-    return res.status(200).json(newMessage)
+    return res.status(200).json(data)
   }
 
-  if (req.method === 'DELETE') {
-    const { id } = req.query
+  // CRIAR MENSAGEM
+  if (req.method === 'POST') {
 
-    messages = messages.filter(m => m.id != id)
+    const { name, message } = req.body
+
+    const { data, error } = await supabase
+      .from('messages')
+      .insert([
+        { name, message }
+      ])
+
+    if (error) {
+      return res.status(500).json({ error: error.message })
+    }
+
+    return res.status(200).json(data)
+  }
+
+  // EXCLUIR MENSAGEM
+  if (req.method === 'DELETE') {
+
+    const { id } = req.body
+
+    const { error } = await supabase
+      .from('messages')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      return res.status(500).json({ error: error.message })
+    }
 
     return res.status(200).json({ success: true })
   }
-
-  res.status(405).json({ error: 'Method not allowed' })
 }

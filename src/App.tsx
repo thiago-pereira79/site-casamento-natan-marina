@@ -3,22 +3,23 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Heart, 
-  MapPin, 
-  Gift, 
-  Camera, 
-  CheckCircle2, 
-  MessageSquare, 
-  Menu, 
-  X, 
+import {
+  Heart,
+  MapPin,
+  Gift,
+  Camera,
+  CheckCircle2,
+  MessageSquare,
+  Menu,
+  X,
   ChevronRight,
-  Calendar,
   Clock,
   ExternalLink,
-  Trash2
+  Trash2,
+  ShieldCheck,
+  LogOut
 } from 'lucide-react';
 import casal from "./assets/casal.jpeg";
 import casal1 from "./assets/casal1.jpeg";
@@ -36,14 +37,13 @@ import casal12 from "./assets/casal12.jpeg";
 
 // --- Types ---
 interface Message {
-  id: number;
+  id: string;
   name: string;
   message: string;
   created_at: string;
 }
 
 // --- Components ---
-
 const Monogram = ({ className = "" }: { className?: string }) => (
   <div className={`font-serif text-2xl md:text-3xl tracking-tighter ${className}`}>
     N <span className="text-dusty-blue">&</span> M
@@ -60,7 +60,7 @@ const SectionHeading = ({ title, subtitle }: { title: string, subtitle?: string 
     >
       <Heart className="w-5 h-5 text-dusty-blue mx-auto mb-4" />
     </motion.div>
-    <motion.h2 
+    <motion.h2
       initial={{ opacity: 0, y: 20 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
@@ -70,7 +70,7 @@ const SectionHeading = ({ title, subtitle }: { title: string, subtitle?: string 
       {title}
     </motion.h2>
     {subtitle && (
-      <motion.p 
+      <motion.p
         initial={{ opacity: 0 }}
         whileInView={{ opacity: 1 }}
         viewport={{ once: true }}
@@ -91,7 +91,14 @@ export default function App() {
   const [lastRsvpAttending, setLastRsvpAttending] = useState<boolean>(true);
   const [msgStatus, setMsgStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
-  const [messageToDelete, setMessageToDelete] = useState<number | null>(null);
+  const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
+
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminPanelOpen, setAdminPanelOpen] = useState(false);
+  const [adminPasswordInput, setAdminPasswordInput] = useState('');
+  const [adminPassword, setAdminPassword] = useState('');
+  const [adminStatus, setAdminStatus] = useState<'idle' | 'loading' | 'error'>('idle');
+  const [adminError, setAdminError] = useState('');
 
   // Countdown Logic
   useEffect(() => {
@@ -117,6 +124,15 @@ export default function App() {
     return () => clearInterval(timer);
   }, []);
 
+  // Recuperar modo admin da sessão
+  useEffect(() => {
+    const savedPassword = sessionStorage.getItem('wedding_admin_password');
+    if (savedPassword) {
+      setAdminPassword(savedPassword);
+      setIsAdmin(true);
+    }
+  }, []);
+
   // Fetch Messages
   const fetchMessages = async () => {
     try {
@@ -128,9 +144,72 @@ export default function App() {
     }
   };
 
+  // carregar + atualizar automaticamente
   useEffect(() => {
     fetchMessages();
+
+    const interval = setInterval(() => {
+      fetchMessages();
+    }, 10000);
+
+    return () => clearInterval(interval);
   }, []);
+
+  const formatMessageDate = (dateString: string) => {
+    if (!dateString) return '';
+
+    const date = new Date(dateString);
+
+    if (Number.isNaN(date.getTime())) {
+      return '';
+    }
+
+    return date.toLocaleString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const handleAdminLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setAdminStatus('loading');
+    setAdminError('');
+
+    try {
+      const response = await fetch('/api/admin/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: adminPasswordInput }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Não foi possível entrar no modo admin.');
+      }
+
+      setIsAdmin(true);
+      setAdminPassword(adminPasswordInput);
+      sessionStorage.setItem('wedding_admin_password', adminPasswordInput);
+      setAdminPasswordInput('');
+      setAdminPanelOpen(false);
+      setAdminStatus('idle');
+    } catch (err: any) {
+      setAdminStatus('error');
+      setAdminError(err.message || 'Senha incorreta.');
+    }
+  };
+
+  const handleAdminLogout = () => {
+    setIsAdmin(false);
+    setAdminPassword('');
+    setAdminPasswordInput('');
+    setAdminError('');
+    sessionStorage.removeItem('wedding_admin_password');
+  };
 
   const handleRSVP = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -152,14 +231,12 @@ export default function App() {
     };
 
     try {
-      // Salva no banco de dados para registro interno
       await fetch('/api/rsvp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
 
-      // Constrói a mensagem do WhatsApp
       const whatsappNumber = "5516988329622";
       let message = "";
 
@@ -170,8 +247,7 @@ export default function App() {
       }
 
       const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-      
-      // Abre o WhatsApp
+
       window.open(whatsappUrl, '_blank');
 
       setRsvpStatus('success');
@@ -184,6 +260,7 @@ export default function App() {
   const handleMessageSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setMsgStatus('submitting');
+
     const formData = new FormData(e.currentTarget);
     const data = {
       name: formData.get('name'),
@@ -191,45 +268,58 @@ export default function App() {
     };
 
     try {
-      await fetch('/api/messages', {
+      const response = await fetch('/api/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Não foi possível enviar a mensagem.');
+      }
+
       setMsgStatus('success');
       fetchMessages();
       (e.target as HTMLFormElement).reset();
+
       setTimeout(() => setMsgStatus('idle'), 3000);
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      alert(err.message || 'Não foi possível enviar a mensagem.');
       setMsgStatus('idle');
     }
   };
 
   const handleDeleteMessage = async () => {
-  if (messageToDelete === null) return;
-  
-  const previousMessages = [...messages];
-  setMessages(messages.filter(m => m.id !== messageToDelete));
-  
-  try {
-    const response = await fetch(`/api/messages?id=${messageToDelete}`, {
-      method: 'DELETE',
-    });
-    
-    if (!response.ok) {
-      throw new Error('Failed to delete message');
+    if (messageToDelete === null) return;
+
+    const previousMessages = [...messages];
+    setMessages(messages.filter((m) => m.id !== messageToDelete));
+
+    try {
+      const response = await fetch(`/api/messages/${messageToDelete}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: adminPassword }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Não foi possível excluir a mensagem.');
+      }
+
+      setMessageToDelete(null);
+      fetchMessages();
+    } catch (err: any) {
+      console.error('Error deleting message:', err);
+      setMessages(previousMessages);
+      alert(err.message || 'Não foi possível excluir a mensagem. Tente novamente.');
+      setMessageToDelete(null);
     }
-    
-    setMessageToDelete(null);
-    fetchMessages();
-  } catch (err) {
-    console.error('Error deleting message:', err);
-    setMessages(previousMessages);
-    alert('Não foi possível excluir a mensagem. Tente novamente.');
-    setMessageToDelete(null);
-  }
-};
+  };
 
   const navItems = [
     { name: 'Home', id: 'home' },
@@ -243,18 +333,18 @@ export default function App() {
   ];
 
   const galleryImages = [
-  casal1,
-  casal2,
-  casal3,
-  casal4,
-  casal5,
-  casal6,
-  casal7,
-  casal8,
-  casal9,
-  casal10,
-  casal11,
-  casal12
+    casal1,
+    casal2,
+    casal3,
+    casal4,
+    casal5,
+    casal6,
+    casal7,
+    casal8,
+    casal9,
+    casal10,
+    casal11,
+    casal12
   ];
 
   return (
@@ -266,11 +356,10 @@ export default function App() {
             <Monogram />
           </a>
 
-          {/* Desktop Nav */}
           <div className="hidden lg:flex items-center space-x-8">
             {navItems.map((item) => (
-              <a 
-                key={item.id} 
+              <a
+                key={item.id}
                 href={`#${item.id}`}
                 className="text-sm uppercase tracking-widest text-stone-600 hover:text-dusty-blue transition-colors font-medium"
               >
@@ -279,8 +368,7 @@ export default function App() {
             ))}
           </div>
 
-          {/* Mobile Menu Toggle */}
-          <button 
+          <button
             className="lg:hidden p-2 text-stone-600"
             onClick={() => setIsMenuOpen(!isMenuOpen)}
           >
@@ -288,10 +376,9 @@ export default function App() {
           </button>
         </div>
 
-        {/* Mobile Nav */}
         <AnimatePresence>
           {isMenuOpen && (
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
@@ -299,8 +386,8 @@ export default function App() {
             >
               <div className="px-6 py-8 flex flex-col space-y-6">
                 {navItems.map((item) => (
-                  <a 
-                    key={item.id} 
+                  <a
+                    key={item.id}
                     href={`#${item.id}`}
                     onClick={() => setIsMenuOpen(false)}
                     className="text-lg heading-serif text-stone-800"
@@ -317,9 +404,9 @@ export default function App() {
       {/* --- Hero Section --- */}
       <section id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden pt-32 pb-20">
         <div className="absolute inset-0 z-0">
-          <img 
-            src="https://picsum.photos/seed/wedding-hero/1920/1080?blur=2" 
-            alt="Wedding Background" 
+          <img
+            src="https://picsum.photos/seed/wedding-hero/1920/1080?blur=2"
+            alt="Wedding Background"
             className="w-full h-full object-cover opacity-30"
             referrerPolicy="no-referrer"
           />
@@ -340,44 +427,41 @@ export default function App() {
             </p>
             <div className="w-16 md:w-24 h-px bg-dusty-blue mx-auto mb-8 md:mb-12"></div>
             <p className="text-base md:text-xl text-stone-500 leading-relaxed max-w-2xl mx-auto italic px-4">
-              “Sejam bem-vindos ao nosso site! Estamos muito felizes por partilhar este momento tão especial. 
-              Aqui encontrarão todos os detalhes sobre o nosso grande dia. Obrigado por fazerem parte da nossa 
+              “Sejam bem-vindos ao nosso site! Estamos muito felizes por partilhar este momento tão especial.
+              Aqui encontrarão todos os detalhes sobre o nosso grande dia. Obrigado por fazerem parte da nossa
               história e por celebrarem o amor conosco!”
             </p>
           </motion.div>
         </div>
 
-        {/* Decorative elements */}
-        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-dusty-blue">
-          {/* Seta removida conforme solicitado */}
-        </div>
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 text-dusty-blue"></div>
       </section>
 
       {/* --- O Casal --- */}
       <section id="casal" className="section-padding bg-white">
         <div className="max-w-7xl mx-auto">
-          <SectionHeading 
-            title="O Casal" 
-            subtitle="Nossa história, nosso amor, nosso começo." 
+          <SectionHeading
+            title="O Casal"
+            subtitle="Nossa história, nosso amor, nosso começo."
           />
-          
+
           <div className="grid md:grid-cols-2 gap-16 items-center">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               className="relative aspect-[4/5] rounded-2xl overflow-hidden shadow-2xl"
             >
-              <img 
+              <img
                 src={casal}
-                alt="Natan e Marina" 
+                alt="Natan e Marina"
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
               />
               <div className="absolute inset-0 ring-1 ring-inset ring-black/10 rounded-2xl"></div>
             </motion.div>
 
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, x: 30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
@@ -387,12 +471,12 @@ export default function App() {
                 <h3 className="heading-serif text-3xl text-stone-800 mb-8 text-center md:text-left">Uma Jornada de Amor</h3>
                 <div className="space-y-6 text-stone-600 leading-relaxed text-lg text-justify">
                   <p>
-                    Tudo começou de forma inesperada, mas logo percebemos que nossos caminhos eram destinados a se cruzar. 
+                    Tudo começou de forma inesperada, mas logo percebemos que nossos caminhos eram destinados a se cruzar.
                     Entre risos, conversas profundas e momentos inesquecíveis, construímos uma base sólida de amizade e cumplicidade.
                   </p>
                   <p>
-                    Cada dia ao lado um do outro é uma nova descoberta. Aprendemos que o amor está nos pequenos detalhes, 
-                    no apoio mútuo e no desejo constante de ver o outro feliz. Agora, estamos prontos para dar o passo mais 
+                    Cada dia ao lado um do outro é uma nova descoberta. Aprendemos que o amor está nos pequenos detalhes,
+                    no apoio mútuo e no desejo constante de ver o outro feliz. Agora, estamos prontos para dar o passo mais
                     importante de nossas vidas e começar este novo capítulo como marido e mulher.
                   </p>
                 </div>
@@ -409,7 +493,7 @@ export default function App() {
       <section id="contagem" className="section-padding bg-dusty-blue/10">
         <div className="max-w-5xl mx-auto text-center">
           <SectionHeading title="Contagem Regressiva" subtitle="O tempo voa quando estamos ansiosos para celebrar!" />
-          
+
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-12">
             {[
               { label: 'Dias', value: timeLeft.days },
@@ -417,7 +501,7 @@ export default function App() {
               { label: 'Minutos', value: timeLeft.minutes },
               { label: 'Segundos', value: timeLeft.seconds },
             ].map((item) => (
-              <motion.div 
+              <motion.div
                 key={item.label}
                 initial={{ opacity: 0, scale: 0.9 }}
                 whileInView={{ opacity: 1, scale: 1 }}
@@ -440,15 +524,15 @@ export default function App() {
       <section id="local" className="section-padding bg-white">
         <div className="max-w-7xl mx-auto">
           <SectionHeading title="Local da Celebração" subtitle="Onde celebraremos juntos este momento especial." />
-          
-          <motion.div 
+
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-center mb-12 -mt-8"
           >
             <p className="text-stone-500 italic text-sm md:text-base max-w-2xl mx-auto leading-relaxed">
-              “Este encontro será um almoço especial em comemoração ao casamento civil de Natan & Marina. 
+              “Este encontro será um almoço especial em comemoração ao casamento civil de Natan & Marina.
               Será um momento íntimo e muito especial para celebrarmos juntos essa nova etapa de nossas vidas.”
             </p>
           </motion.div>
@@ -467,7 +551,7 @@ export default function App() {
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="flex items-start space-x-4 mb-8">
                   <Clock className="w-6 h-6 text-dusty-blue mt-1 shrink-0" />
                   <div>
@@ -476,7 +560,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <a 
+                <a
                   href="https://www.google.com/maps/place/Condom%C3%ADnio+Rosa+dos+Ventos/@-21.1536273,-47.783569,18z/data=!4m6!3m5!1s0x94b9bf981344645b:0xab78745e12025c6d!8m2!3d-21.1539379!4d-47.7826007!16s%2Fg%2F11c1xflwgp?entry=ttu"
                   target="_blank"
                   rel="noopener noreferrer"
@@ -498,13 +582,13 @@ export default function App() {
             </div>
 
             <div className="h-[500px] rounded-2xl overflow-hidden shadow-inner border border-stone-200 bg-soft-cream flex items-center justify-center">
-              <iframe 
-                src="https://maps.google.com/maps?q=Av.%20Cavalheiro%20Paschoal%20Innecchi,%201701%20-%20Independ%C3%AAncia,%20Ribeir%C3%A3o%20Preto%20-%20SP,%2014076-360&t=&z=15&ie=UTF8&iwloc=&output=embed" 
-                width="100%" 
-                height="100%" 
-                style={{ border: 0 }} 
-                allowFullScreen 
-                loading="lazy" 
+              <iframe
+                src="https://maps.google.com/maps?q=Av.%20Cavalheiro%20Paschoal%20Innecchi,%201701%20-%20Independ%C3%AAncia,%20Ribeir%C3%A3o%20Preto%20-%20SP,%2014076-360&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                width="100%"
+                height="100%"
+                style={{ border: 0 }}
+                allowFullScreen
+                loading="lazy"
                 referrerPolicy="no-referrer-when-downgrade"
                 title="Local do Casamento"
               ></iframe>
@@ -517,14 +601,14 @@ export default function App() {
       <section id="presentes" className="section-padding bg-light-beige/50">
         <div className="max-w-4xl mx-auto text-center">
           <SectionHeading title="Lista de Presentes" subtitle="Sua presença é o nosso maior presente, mas se desejar nos presentear, aqui estão algumas opções." />
-          
+
           <div className="grid gap-6">
             {[
               { name: 'Camicado', url: 'https://www.camicado.com.br/lista/convidado/marinaenatan' },
               { name: 'Havan', url: 'https://lista.havan.com.br/Convidado/ItensListaPresente/908285' },
               { name: 'Quero de Casamento', url: 'https://www.querodecasamento.com.br/lista-de-casamento/marina-natan' },
             ].map((store) => (
-              <motion.a 
+              <motion.a
                 key={store.name}
                 href={store.url}
                 target="_blank"
@@ -550,10 +634,10 @@ export default function App() {
       <section id="galeria" className="section-padding bg-white">
         <div className="max-w-7xl mx-auto">
           <SectionHeading title="Galeria de Fotos" subtitle="Alguns momentos especiais da nossa jornada." />
-          
+
           <div className="columns-1 sm:columns-2 lg:columns-3 gap-6 space-y-6">
             {galleryImages.map((src, idx) => (
-              <motion.div 
+              <motion.div
                 key={idx}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
@@ -562,9 +646,9 @@ export default function App() {
                 className="relative group cursor-pointer overflow-hidden rounded-2xl"
                 onClick={() => setSelectedImage(src)}
               >
-                <img 
-                  src={src} 
-                  alt={`Wedding moment ${idx + 1}`} 
+                <img
+                  src={src}
+                  alt={`Wedding moment ${idx + 1}`}
                   className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-110"
                   referrerPolicy="no-referrer"
                 />
@@ -581,10 +665,10 @@ export default function App() {
       <section id="rsvp" className="section-padding bg-rosy-nude/10">
         <div className="max-w-3xl mx-auto">
           <SectionHeading title="Confirmação de Presença" subtitle="Por favor, confirme sua presença até dia 15/06/2026." />
-          
+
           <div className="bg-white p-8 md:p-12 rounded-3xl shadow-xl border border-rosy-nude/20">
             {rsvpStatus === 'success' ? (
-              <motion.div 
+              <motion.div
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 className="text-center py-12"
@@ -594,10 +678,10 @@ export default function App() {
                     <CheckCircle2 className="w-20 h-20 text-sage-green mx-auto mb-6" />
                     <h3 className="heading-serif text-3xl text-stone-800 mb-4">Obrigado por confirmar!</h3>
                     <p className="text-stone-600 leading-relaxed italic">
-                      “Não se esqueçam de confirmar a presença até o dia 15/06/2026. 
+                      “Não se esqueçam de confirmar a presença até o dia 15/06/2026.
                       A sua participação é o que dará sentido a toda essa celebração. Nos vemos em breve!”
                     </p>
-                    <button 
+                    <button
                       onClick={() => setRsvpStatus('idle')}
                       className="mt-8 text-dusty-blue underline font-medium"
                     >
@@ -609,10 +693,10 @@ export default function App() {
                     <Heart className="w-20 h-20 text-blush mx-auto mb-6 fill-blush/20" />
                     <h3 className="heading-serif text-3xl text-stone-800 mb-4">Recebemos sua resposta</h3>
                     <p className="text-stone-600 leading-relaxed italic">
-                      “Sentiremos sua falta neste dia tão especial, mas agradecemos muito por nos avisar. 
+                      “Sentiremos sua falta neste dia tão especial, mas agradecemos muito por nos avisar.
                       Com carinho, Natan & Marina.”
                     </p>
-                    <button 
+                    <button
                       onClick={() => {
                         setRsvpStatus('idle');
                         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -629,20 +713,20 @@ export default function App() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-sm uppercase tracking-widest text-stone-500 font-semibold">Nome Completo</label>
-                    <input 
-                      required 
+                    <input
+                      required
                       name="name"
-                      type="text" 
+                      type="text"
                       className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-dusty-blue focus:ring-1 focus:ring-dusty-blue outline-none transition-all"
                       placeholder="Seu nome"
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm uppercase tracking-widest text-stone-500 font-semibold">Telefone / WhatsApp</label>
-                    <input 
-                      required 
+                    <input
+                      required
                       name="phone"
-                      type="tel" 
+                      type="tel"
                       className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-dusty-blue focus:ring-1 focus:ring-dusty-blue outline-none transition-all"
                       placeholder="(00) 00000-0000"
                     />
@@ -652,17 +736,17 @@ export default function App() {
                 <div className="grid md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <label className="text-sm uppercase tracking-widest text-stone-500 font-semibold">E-mail</label>
-                    <input 
-                      required 
+                    <input
+                      required
                       name="email"
-                      type="email" 
+                      type="email"
                       className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-dusty-blue focus:ring-1 focus:ring-dusty-blue outline-none transition-all"
                       placeholder="seu@email.com"
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm uppercase tracking-widest text-stone-500 font-semibold">Nº de Acompanhante</label>
-                    <select 
+                    <select
                       name="guests"
                       className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-dusty-blue focus:ring-1 focus:ring-dusty-blue outline-none transition-all appearance-none bg-white"
                     >
@@ -675,21 +759,21 @@ export default function App() {
                   <label className="text-sm uppercase tracking-widest text-stone-500 font-semibold block">Você comparecerá?</label>
                   <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-8">
                     <label className="flex items-center space-x-3 cursor-pointer group">
-                      <input 
-                        required 
-                        type="radio" 
-                        name="attending" 
-                        value="sim" 
+                      <input
+                        required
+                        type="radio"
+                        name="attending"
+                        value="sim"
                         className="w-5 h-5 text-dusty-blue border-stone-300 focus:ring-dusty-blue"
                       />
                       <span className="text-stone-700 group-hover:text-dusty-blue transition-colors">Sim, com certeza!</span>
                     </label>
                     <label className="flex items-center space-x-3 cursor-pointer group">
-                      <input 
-                        required 
-                        type="radio" 
-                        name="attending" 
-                        value="nao" 
+                      <input
+                        required
+                        type="radio"
+                        name="attending"
+                        value="nao"
                         className="w-5 h-5 text-dusty-blue border-stone-300 focus:ring-dusty-blue"
                       />
                       <span className="text-stone-700 group-hover:text-dusty-blue transition-colors">Infelizmente não poderei</span>
@@ -697,7 +781,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <button 
+                <button
                   type="submit"
                   disabled={rsvpStatus === 'submitting'}
                   className="w-full bg-dusty-blue text-white py-4 rounded-full hover:bg-deep-dusty transition-all shadow-lg font-medium disabled:opacity-50"
@@ -714,36 +798,92 @@ export default function App() {
       <section id="mensagens" className="section-padding bg-white">
         <div className="max-w-7xl mx-auto">
           <SectionHeading title="Mensagens e Depoimentos" subtitle="Deixe uma mensagem carinhosa para o casal." />
-          
+
           <div className="grid lg:grid-cols-3 gap-12">
             {/* Form */}
             <div className="lg:col-span-1">
               <div className="bg-soft-cream p-8 rounded-2xl border border-stone-100 sticky top-24">
+                <div className="mb-6 rounded-2xl border border-stone-200 bg-white p-4">
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-stone-700">
+                      <ShieldCheck className="w-5 h-5 text-dusty-blue" />
+                      <span className="text-sm font-semibold uppercase tracking-widest">Área do casal</span>
+                    </div>
+
+                    {!isAdmin ? (
+                      <button
+                        type="button"
+                        onClick={() => setAdminPanelOpen(!adminPanelOpen)}
+                        className="text-sm text-dusty-blue underline"
+                      >
+                        {adminPanelOpen ? 'Fechar' : 'Entrar'}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={handleAdminLogout}
+                        className="inline-flex items-center gap-2 text-sm text-red-500 underline"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        Sair
+                      </button>
+                    )}
+                  </div>
+
+                  {isAdmin ? (
+                    <p className="mt-3 text-sm text-sage-green font-medium">
+                      Modo administrador ativo. Agora a lixeira aparece para você.
+                    </p>
+                  ) : adminPanelOpen ? (
+                    <form onSubmit={handleAdminLogin} className="mt-4 space-y-3">
+                      <input
+                        type="password"
+                        value={adminPasswordInput}
+                        onChange={(e) => setAdminPasswordInput(e.target.value)}
+                        placeholder="Senha do administrador"
+                        className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-dusty-blue outline-none bg-white"
+                      />
+                      <button
+                        type="submit"
+                        disabled={adminStatus === 'loading'}
+                        className="w-full bg-dusty-blue text-white py-3 rounded-full hover:bg-deep-dusty transition-all disabled:opacity-50"
+                      >
+                        {adminStatus === 'loading' ? 'Entrando...' : 'Ativar modo administrador'}
+                      </button>
+                      {adminError && (
+                        <p className="text-sm text-red-500 text-center">{adminError}</p>
+                      )}
+                    </form>
+                  ) : null}
+                </div>
+
                 <h4 className="heading-serif text-2xl text-stone-800 mb-6 flex items-center gap-2">
                   <MessageSquare className="w-5 h-5 text-dusty-blue" />
                   Deixe sua Mensagem
                 </h4>
+
                 <form onSubmit={handleMessageSubmit} className="space-y-4">
                   <div className="space-y-2">
                     <label className="text-xs uppercase tracking-widest text-stone-500 font-bold">Seu Nome</label>
-                    <input 
-                      required 
+                    <input
+                      required
                       name="name"
-                      type="text" 
+                      type="text"
                       className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-dusty-blue outline-none bg-white"
                     />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs uppercase tracking-widest text-stone-500 font-bold">Mensagem</label>
-                    <textarea 
-                      required 
+                    <textarea
+                      required
                       name="message"
                       rows={4}
+                      maxLength={500}
                       placeholder="Escreva aqui uma mensagem especial para Natan & Marina..."
                       className="w-full px-4 py-3 rounded-xl border border-stone-200 focus:border-dusty-blue outline-none bg-white resize-none"
                     ></textarea>
                   </div>
-                  <button 
+                  <button
                     type="submit"
                     disabled={msgStatus === 'submitting'}
                     className="w-full bg-dusty-blue text-white py-3 rounded-full hover:bg-deep-dusty transition-all disabled:opacity-50"
@@ -762,7 +902,7 @@ export default function App() {
               <div className="grid sm:grid-cols-2 gap-6">
                 <AnimatePresence mode="popLayout">
                   {messages.map((msg) => (
-                    <motion.div 
+                    <motion.div
                       key={msg.id}
                       layout
                       initial={{ opacity: 0, scale: 0.9 }}
@@ -770,22 +910,29 @@ export default function App() {
                       className="bg-white p-6 rounded-2xl border border-stone-100 shadow-sm hover:shadow-md transition-shadow relative group overflow-hidden"
                     >
                       <div className="absolute top-4 right-4 flex items-center space-x-2 z-20">
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setMessageToDelete(msg.id);
-                          }}
-                          className="p-2 text-stone-400 hover:text-red-500 transition-all bg-white/80 hover:bg-red-50 rounded-full backdrop-blur-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100 border border-stone-100 shadow-sm"
-                          title="Apagar mensagem"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        {isAdmin && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setMessageToDelete(msg.id);
+                            }}
+                            className="p-2 text-stone-400 hover:text-red-500 transition-all bg-white/80 hover:bg-red-50 rounded-full backdrop-blur-sm opacity-100 lg:opacity-0 lg:group-hover:opacity-100 border border-stone-100 shadow-sm"
+                            title="Apagar mensagem"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
                         <MessageSquare className="w-8 h-8 text-dusty-blue/10" />
                       </div>
                       <p className="text-stone-600 italic mb-4 relative z-10 pr-10">“{msg.message}”</p>
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-px bg-dusty-blue"></div>
-                        <span className="heading-serif text-lg text-stone-800">{msg.name}</span>
+                      <div className="flex items-center justify-between gap-4">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-px bg-dusty-blue"></div>
+                          <span className="heading-serif text-lg text-stone-800">{msg.name}</span>
+                        </div>
+                        <span className="text-xs text-stone-400">
+                          {formatMessageDate(msg.created_at)}
+                        </span>
                       </div>
                     </motion.div>
                   ))}
@@ -811,7 +958,7 @@ export default function App() {
           >
             <h2 className="heading-serif text-3xl md:text-4xl mb-4">Natan <span className="text-floral-blue">&</span> Marina</h2>
             <p className="tracking-[0.3em] text-soft-blue/60 mb-12">27 DE JUNHO DE 2026</p>
-            
+
             <div className="flex justify-center space-x-6 mb-12">
               {navItems.slice(0, 4).map(item => (
                 <a key={item.id} href={`#${item.id}`} className="text-sm uppercase tracking-widest hover:text-floral-blue transition-colors">
@@ -821,7 +968,7 @@ export default function App() {
             </div>
 
             <div className="w-full h-px bg-white/10 mb-12"></div>
-            
+
             <p className="text-soft-blue/40 text-sm">
               Feito com carinho para celebrar o amor. &copy; 2026 Natan & Marina.
             </p>
@@ -832,23 +979,23 @@ export default function App() {
       {/* --- Image Modal --- */}
       <AnimatePresence>
         {selectedImage && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSelectedImage(null)}
             className="fixed inset-0 z-[100] bg-stone-900/95 flex items-center justify-center p-4 cursor-zoom-out"
           >
-            <motion.img 
+            <motion.img
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              src={selectedImage} 
-              alt="Enlarged" 
+              src={selectedImage}
+              alt="Enlarged"
               className="max-w-full max-h-full rounded-lg shadow-2xl"
               referrerPolicy="no-referrer"
             />
-            <button 
+            <button
               className="absolute top-6 right-6 text-white p-2 hover:bg-white/10 rounded-full transition-colors"
               onClick={() => setSelectedImage(null)}
             >
@@ -862,14 +1009,14 @@ export default function App() {
       <AnimatePresence>
         {messageToDelete !== null && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setMessageToDelete(null)}
               className="absolute inset-0 bg-stone-900/60 backdrop-blur-sm"
             />
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
@@ -883,13 +1030,13 @@ export default function App() {
                 Tem certeza que deseja excluir esta mensagem? Esta ação não pode ser desfeita.
               </p>
               <div className="flex space-x-4">
-                <button 
+                <button
                   onClick={() => setMessageToDelete(null)}
                   className="flex-1 px-6 py-3 rounded-full border border-stone-200 text-stone-600 font-medium hover:bg-stone-50 transition-colors"
                 >
                   Cancelar
                 </button>
-                <button 
+                <button
                   onClick={handleDeleteMessage}
                   className="flex-1 px-6 py-3 rounded-full bg-red-500 text-white font-medium hover:bg-red-600 transition-colors shadow-lg shadow-red-500/20"
                 >
