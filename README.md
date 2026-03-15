@@ -47,18 +47,17 @@ O objetivo é oferecer uma experiência simples e elegante para os convidados, r
 
 ### Backend
 
-- Node.js
-- Express
+- Vercel Serverless Functions
 - API REST
 
 ### Banco de dados
 
-- Supabase (mensagens)
-- SQLite (RSVP)
+- Supabase
 
 ### Deploy
 
 - Vercel
+- GitHub
 
 ---
 
@@ -90,18 +89,17 @@ O sistema de mensagens possui algumas proteções básicas:
 
 # 🏗 Estrutura do projeto
 
-```
+```bash
 .
+├── api
+│   ├── admin-login.ts
+│   ├── delete-message.ts
+│   ├── messages.ts
+│   └── rsvp.ts
+│
 ├── src
-│   ├── components
 │   ├── assets
 │   └── App.tsx
-│
-├── server.ts
-│   Backend Express + API
-│
-├── database
-│   SQLite (RSVP)
 │
 ├── package.json
 ├── vite.config.ts
