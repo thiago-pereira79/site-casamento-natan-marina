@@ -1,54 +1,39 @@
-import { supabase } from '../src/lib/supabase'
+import { createClient } from "@supabase/supabase-js";
 
-export default async function handler(req, res) {
+const supabase = createClient(
+  process.env.SUPABASE_URL!,
+  process.env.SUPABASE_ANON_KEY!
+);
 
-  // BUSCAR MENSAGENS
-  if (req.method === 'GET') {
+export default async function handler(req: any, res: any) {
 
-    const { data, error } = await supabase
-      .from('messages')
-      .select('*')
-      .order('created_at', { ascending: false })
-
-    if (error) {
-      return res.status(500).json({ error: error.message })
-    }
-
-    return res.status(200).json(data)
-  }
-
-  // CRIAR MENSAGEM
-  if (req.method === 'POST') {
-
-    const { name, message } = req.body
+  if (req.method === "GET") {
 
     const { data, error } = await supabase
-      .from('messages')
-      .insert([
-        { name, message }
-      ])
+      .from("messages")
+      .select("*")
+      .order("created_at", { ascending: false });
 
     if (error) {
-      return res.status(500).json({ error: error.message })
+      return res.status(500).json({ error: error.message });
     }
 
-    return res.status(200).json(data)
+    return res.json(data);
   }
 
-  // EXCLUIR MENSAGEM
-  if (req.method === 'DELETE') {
+  if (req.method === "POST") {
 
-    const { id } = req.body
+    const { name, message } = req.body;
 
     const { error } = await supabase
-      .from('messages')
-      .delete()
-      .eq('id', id)
+      .from("messages")
+      .insert([{ name, message }]);
 
     if (error) {
-      return res.status(500).json({ error: error.message })
+      return res.status(500).json({ error: error.message });
     }
 
-    return res.status(200).json({ success: true })
+    return res.json({ success: true });
   }
+
 }
