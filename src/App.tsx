@@ -179,13 +179,14 @@ export default function App() {
     setAdminError('');
 
     try {
-      const response = await fetch('/api/admin/login', {
+      const response = await fetch('/api/admin-login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password: adminPasswordInput }),
       });
 
-      const result = await response.json();
+      const text = await response.text();
+      const result = text ? JSON.parse(text) : {};
 
       if (!response.ok) {
         throw new Error(result.error || 'Não foi possível entrar no modo admin.');
@@ -231,11 +232,18 @@ export default function App() {
     };
 
     try {
-      await fetch('/api/rsvp', {
+      const response = await fetch('/api/rsvp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
+
+      const text = await response.text();
+      const result = text ? JSON.parse(text) : {};
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Não foi possível enviar o RSVP.');
+      }
 
       const whatsappNumber = "5516988329622";
       let message = "";
@@ -249,7 +257,6 @@ export default function App() {
       const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
 
       window.open(whatsappUrl, '_blank');
-
       setRsvpStatus('success');
     } catch (err) {
       console.error(err);
@@ -274,7 +281,8 @@ export default function App() {
         body: JSON.stringify(data),
       });
 
-      const result = await response.json();
+      const text = await response.text();
+      const result = text ? JSON.parse(text) : {};
 
       if (!response.ok) {
         throw new Error(result.error || 'Não foi possível enviar a mensagem.');
@@ -299,13 +307,17 @@ export default function App() {
     setMessages(messages.filter((m) => m.id !== messageToDelete));
 
     try {
-      const response = await fetch(`/api/messages/${messageToDelete}`, {
+      const response = await fetch('/api/delete-message', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password: adminPassword }),
+        body: JSON.stringify({
+          id: messageToDelete,
+          password: adminPassword
+        }),
       });
 
-      const result = await response.json();
+      const text = await response.text();
+      const result = text ? JSON.parse(text) : {};
 
       if (!response.ok) {
         throw new Error(result.error || 'Não foi possível excluir a mensagem.');
