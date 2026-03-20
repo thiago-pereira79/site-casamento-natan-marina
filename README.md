@@ -2,6 +2,7 @@
 
 ![Licença](https://img.shields.io/badge/Licença-MIT-green)
 ![Status](https://img.shields.io/badge/Status-Em%20produção-brightgreen)
+![Deploy](https://img.shields.io/badge/Deploy-Vercel-000000?style=flat&logo=vercel&logoColor=white)
 ![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat&logo=typescript&logoColor=white)
 ![Vite](https://img.shields.io/badge/Vite-646CFF?style=flat&logo=vite&logoColor=white)
