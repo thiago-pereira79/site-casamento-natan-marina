@@ -520,7 +520,7 @@
   }
 
  .countdown-section {
-  padding-top: 20px;
+  padding-top: 25px;
   padding-bottom: 0;
   @apply flex flex-col items-center justify-center;
 }
