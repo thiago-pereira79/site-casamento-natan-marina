@@ -370,68 +370,96 @@
     margin-right: calc(50% - 50vw);
   }
 
-  .hero-section {
-    background-image: url('/floral.jpeg');
-    background-repeat: no-repeat;
-    background-size: cover;
-    background-position: center top;
-    position: relative;
-    width: 100vw;
-    max-width: 100vw;
-    min-height: 75vh;
-  }
+.hero-section {
+  background-image: url('/floral.jpeg');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center top;
+  position: relative;
+  width: 100vw;
+  max-width: 100vw;
+  min-height: 62vh;
+}
 
-  .hero-section::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      to bottom,
-      rgba(244, 236, 232, 0.10) 0%,
-      rgba(244, 236, 232, 0.16) 38%,
-      rgba(244, 236, 232, 0.55) 72%,
-      rgba(244, 236, 232, 0.88) 88%,
-      #F4ECE8 100%
-    );
-    pointer-events: none;
-    z-index: 1;
-  }
-
-  @media (min-width: 1280px) {
-    .hero-section {
-      min-height: 78vh;
-      background-size: cover;
-      background-position: center top;
-    }
-  }
-
-  @media (max-width: 1279px) {
-    .hero-section {
-      min-height: 78vh;
-      background-size: cover;
-      background-position: center top;
-    }
-  }
+.hero-section::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(244, 236, 232, 0.08) 0%,
+    rgba(244, 236, 232, 0.14) 34%,
+    rgba(244, 236, 232, 0.42) 62%,
+    rgba(244, 236, 232, 0.76) 82%,
+    #F4ECE8 100%
+  );
+  pointer-events: none;
+  z-index: 1;
+}
 
 @media (max-width: 1023px) {
-  .hero-section {
-    min-height: 82vh;
-    background-size: cover;
-    background-position: center top;
-    margin-top: -96px;
-    padding-top: 176px !important;
+  .hero-section::after {
+    background: linear-gradient(
+      to bottom,
+      rgba(244, 236, 232, 0.06) 0%,
+      rgba(244, 236, 232, 0.12) 34%,
+      rgba(244, 236, 232, 0.38) 58%,
+      rgba(244, 236, 232, 0.72) 74%,
+      rgba(244, 236, 232, 0.92) 86%,
+      #F4ECE8 100%
+    );
   }
 }
 
-  @media (max-width: 767px) {
-    .hero-section {
-      min-height: 86vh;
-      background-size: cover;
-      background-position: center top;
-      margin-top: -80px;
-      padding-top: 165px !important;
-    }
+@media (max-width: 767px) {
+  .hero-section::after {
+    background: linear-gradient(
+      to bottom,
+      rgba(244, 236, 232, 0.05) 0%,
+      rgba(244, 236, 232, 0.10) 30%,
+      rgba(244, 236, 232, 0.32) 52%,
+      rgba(244, 236, 232, 0.68) 70%,
+      rgba(244, 236, 232, 0.90) 84%,
+      #F4ECE8 100%
+    );
   }
+}
+
+@media (min-width: 1280px) {
+  .hero-section {
+    min-height: 66vh;
+    background-size: cover;
+    background-position: center top;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1279px) {
+  .hero-section {
+    min-height: 64vh;
+    background-size: cover;
+    background-position: center top;
+  }
+}
+
+@media (max-width: 1023px) {
+  .hero-section {
+    min-height: 63vh;
+    background-size: 118%;
+    background-position: center 10%;
+    margin-top: -96px;
+    padding-top: 138px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  .hero-section {
+    min-height: 58vh;
+    background-size: 125%;
+    background-position: center 8%;
+    margin-top: -80px;
+    padding-top: 122px !important;
+  }
+}
 
   .footer-line {
     @apply text-text-dark text-center font-light;
@@ -491,11 +519,11 @@
     margin-top: 16px;
   }
 
-  .countdown-section {
-    padding-top: 80px;
-    padding-bottom: 0;
-    @apply flex flex-col items-center justify-center;
-  }
+ .countdown-section {
+  padding-top: 20px;
+  padding-bottom: 0;
+  @apply flex flex-col items-center justify-center;
+}
 
   .countdown-wrapper {
     @apply flex items-center justify-center;

@@ -428,14 +428,17 @@ function Home() {
       <div className="relative">
       <section
   id="home"
-  className="hero-section hero-full-bleed relative w-screen min-h-[75vh] flex flex-col justify-center items-center overflow-hidden pt-28 md:pt-32 lg:pt-32 pb-12"
+  className="hero-section hero-full-bleed relative w-screen flex flex-col justify-center items-center overflow-hidden
+  min-h-[48vh] sm:min-h-[54vh] md:min-h-[62vh] lg:min-h-[70vh]
+  pt-20 sm:pt-24 md:pt-28 lg:pt-32
+  pb-2 sm:pb-4 md:pb-6 lg:pb-8"
 >
           <div className="max-w-4xl w-full text-center relative z-10 px-6 md:px-10 lg:px-12">
             <motion.div
               variants={staggerContainer}
               initial="hidden"
               animate="visible"
-              className="flex flex-col justify-center items-center space-y-10"
+              className="flex flex-col justify-center items-center space-y-6 sm:space-y-8 md:space-y-10"
             >
               <motion.div variants={fadeUp} className="relative w-full flex justify-center">
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] md:w-[150%] h-[150%] md:h-[200%] bg-[radial-gradient(circle_at_center,rgba(250,245,235,0.6)_0%,transparent_65%)] pointer-events-none -z-10 blur-3xl" />
@@ -1095,31 +1098,69 @@ useEffect(() => {
 async function fetchMessages() {
   setLoadingMessages(true);
 
-  const { data, error } = await supabase
-    .from("messages")
-    .select("*")
-    .order("created_at", { ascending: false });
+  try {
+    const { data, error } = await supabase
+      .from("messages")
+      .select("id, name, message, created_at")
+      .order("created_at", { ascending: false });
 
-  console.log("FETCH MESSAGES DATA:", data);
-  console.log("FETCH MESSAGES ERROR:", error);
+    console.log("FETCH MESSAGES DATA:", data);
+    console.log("FETCH MESSAGES ERROR:", error);
 
-  if (error) {
-    console.error("Erro ao buscar mensagens:", error);
-  } else {
+    if (error) {
+      console.error("Erro ao buscar mensagens:", error);
+      setMessages([]);
+      return;
+    }
+
     setMessages(data || []);
+  } catch (err) {
+    console.error("Erro inesperado ao buscar mensagens:", err);
+    setMessages([]);
+  } finally {
+    setLoadingMessages(false);
   }
-
-  setLoadingMessages(false);
 }
 
-const handleAccess = () => {
-  if (password === import.meta.env.VITE_ADMIN_PASSWORD) {
-    setIsAdmin(true);
-    setShowAdminModal(false);
-    setPassword("");
-    setAdminError("");
-  } else {
-    setAdminError("Senha incorreta. Tente novamente.");
+const handleAccess = async () => {
+  const isLocalhost =
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1";
+
+  if (isLocalhost) {
+    if (password === import.meta.env.VITE_ADMIN_PASSWORD) {
+      setIsAdmin(true);
+      setShowAdminModal(false);
+      setPassword("");
+      setAdminError("");
+    } else {
+      setAdminError("Senha incorreta. Tente novamente.");
+    }
+    return;
+  }
+
+  try {
+    const response = await fetch("/api/admin-login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ password }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      setIsAdmin(true);
+      setShowAdminModal(false);
+      setPassword("");
+      setAdminError("");
+    } else {
+      setAdminError("Senha incorreta. Tente novamente.");
+    }
+  } catch (error) {
+    console.error("Erro ao validar senha:", error);
+    setAdminError("Erro ao validar senha. Tente novamente.");
   }
 };
 
@@ -1129,33 +1170,48 @@ const handleSubmit = async (e: React.FormEvent) => {
 
   setSubmittingMessage(true);
 
-const { error } = await supabase.from("messages").insert([
-  {
-    name: name.trim(),
-    message: message.trim(),
-  },
-]);
+  try {
+    const { error } = await supabase.from("messages").insert([
+      {
+        name: name.trim(),
+        message: message.trim(),
+      },
+    ]);
 
- if (error) {
-  console.error("Erro completo ao salvar mensagem:", JSON.stringify(error, null, 2));
-  alert(`Não foi possível enviar a mensagem: ${error.message}`);
-} else {
+    if (error) {
+      console.error("Erro completo ao salvar mensagem:", error);
+      alert(`Não foi possível enviar a mensagem: ${error.message}`);
+      return;
+    }
+
     setName("");
     setMessage("");
     await fetchMessages();
+  } catch (err) {
+    console.error("Erro inesperado ao salvar mensagem:", err);
+    alert("Não foi possível enviar a mensagem.");
+  } finally {
+    setSubmittingMessage(false);
   }
-
-  setSubmittingMessage(false);
 };
 
 const handleDelete = async (id: string) => {
-  const { error } = await supabase.from("messages").delete().eq("id", id);
+  try {
+    const { error } = await supabase
+      .from("messages")
+      .delete()
+      .eq("id", id);
 
-  if (error) {
-    console.error("Erro ao excluir mensagem:", error);
-    alert("Não foi possível excluir a mensagem.");
-  } else {
+    if (error) {
+      console.error("Erro ao excluir mensagem:", error);
+      alert("Não foi possível excluir a mensagem.");
+      return;
+    }
+
     await fetchMessages();
+  } catch (err) {
+    console.error("Erro inesperado ao excluir mensagem:", err);
+    alert("Não foi possível excluir a mensagem.");
   }
 };
 
@@ -1167,18 +1223,24 @@ const startEdit = (msg: any) => {
 const saveEdit = async () => {
   if (!editingId) return;
 
-  const { error } = await supabase
-  .from("messages")
-  .update({ message: editText.trim() })
-  .eq("id", editingId);
+  try {
+    const { error } = await supabase
+      .from("messages")
+      .update({ message: editText.trim() })
+      .eq("id", editingId);
 
-  if (error) {
-    console.error("Erro ao editar mensagem:", error);
-    alert("Não foi possível editar a mensagem.");
-  } else {
+    if (error) {
+      console.error("Erro ao editar mensagem:", error);
+      alert("Não foi possível editar a mensagem.");
+      return;
+    }
+
     setEditingId(null);
     setEditText("");
     await fetchMessages();
+  } catch (err) {
+    console.error("Erro inesperado ao editar mensagem:", err);
+    alert("Não foi possível editar a mensagem.");
   }
 };
 
@@ -1233,82 +1295,89 @@ const saveEdit = async () => {
 </button>
         </motion.form>
 
-        <div className="space-y-8 mb-20">
-          {loadingMessages ? (
-  <motion.p variants={fadeUp} className="body-text text-text-dark italic py-10">
-    Carregando mensagens...
-  </motion.p>
-) : messages.length === 0 ? (
-  <motion.p variants={fadeUp} className="body-text text-text-dark italic py-10">
-    Ainda não há mensagens por aqui. Seja o primeiro a deixar um carinho para o casal!
-  </motion.p>
-) : (
-  messages.map((msg) => (
-              <motion.div
-                key={msg.id}
-                variants={fadeUp}
-                className="bg-white/30 backdrop-blur-sm p-8 md:p-10 rounded-[2rem] border border-gold-soft/30 text-left relative group"
+<div className="space-y-8 mb-20">
+  {loadingMessages && (
+    <p className="body-text text-text-dark italic py-10">
+      Carregando mensagens...
+    </p>
+  )}
+
+  {!loadingMessages && messages.length === 0 && (
+    <p className="body-text text-text-dark italic py-10">
+      Ainda não há mensagens por aqui. Seja o primeiro a deixar um carinho para o casal!
+    </p>
+  )}
+
+  {!loadingMessages &&
+    messages.length > 0 &&
+    messages.map((msg) => (
+      <div
+        key={msg.id}
+        className="bg-white/30 backdrop-blur-sm p-8 md:p-10 rounded-[2rem] border border-gold-soft/30 text-left relative group"
+      >
+        <div className="flex justify-between items-start mb-4">
+          <div>
+            <h4 className="font-serif text-xl text-text-dark">{msg.name}</h4>
+            <span className="text-[10px] uppercase tracking-widest text-text-gray/60">
+              {msg.created_at
+                ? new Date(msg.created_at).toLocaleDateString("pt-BR")
+                : ""}
+            </span>
+          </div>
+
+          {isAdmin && (
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={() => startEdit(msg)}
+                className="text-[10px] uppercase tracking-widest text-blue-gray hover:text-gold transition-colors"
               >
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h4 className="font-serif text-xl text-text-dark">{msg.name}</h4>
-                    <span className="text-[10px] uppercase tracking-widest text-text-gray/60">
-  {msg.created_at ? new Date(msg.created_at).toLocaleDateString("pt-BR") : ""}
-</span>
-                  </div>
-
-                  {isAdmin && (
-                    <div className="flex gap-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button
-                        onClick={() => startEdit(msg)}
-                        className="text-[10px] uppercase tracking-widest text-blue-gray hover:text-gold transition-colors"
-                      >
-                        Editar
-                      </button>
-                      <button
-                        onClick={() => handleDelete(msg.id)}
-                        className="text-[10px] uppercase tracking-widest text-red-400 hover:text-red-600 transition-colors"
-                      >
-                        Excluir
-                      </button>
-                    </div>
-                  )}
-                </div>
-
-                {editingId === msg.id ? (
-                  <div className="space-y-4">
-                    <textarea
-                      className="form-input resize-none text-[0.85rem]"
-                      rows={3}
-                      value={editText}
-                      onChange={(e) => setEditText(e.target.value)}
-                    />
-                    <div className="flex gap-4">
-                      <button
-                        type="button"
-                        onClick={saveEdit}
-                        className="btn-primary !py-2 !px-6 !text-[10px]"
-                      >
-                        Salvar
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setEditingId(null)}
-                        className="btn-secondary !py-2 !px-6 !text-[10px]"
-                      >
-                        Cancelar
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="body-text text-text-dark leading-relaxed italic">
-  "{msg.message}"
-</p>
-                )}
-              </motion.div>
-            ))
+                Editar
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(msg.id)}
+                className="text-[10px] uppercase tracking-widest text-red-400 hover:text-red-600 transition-colors"
+              >
+                Excluir
+              </button>
+            </div>
           )}
         </div>
+
+        {editingId === msg.id ? (
+          <div className="space-y-4">
+            <textarea
+              className="form-input resize-none text-[0.85rem]"
+              rows={3}
+              value={editText}
+              onChange={(e) => setEditText(e.target.value)}
+            />
+            <div className="flex gap-4">
+              <button
+                type="button"
+                onClick={saveEdit}
+                className="btn-primary !py-2 !px-6 !text-[10px]"
+              >
+                Salvar
+              </button>
+              <button
+                type="button"
+                onClick={() => setEditingId(null)}
+                className="btn-secondary !py-2 !px-6 !text-[10px]"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ) : (
+          <p className="body-text text-text-dark leading-relaxed italic">
+            "{msg.message}"
+          </p>
+        )}
+      </div>
+    ))}
+</div>
 
         <motion.div variants={fadeUp} className="mt-12 pt-10 border-t border-gold-soft w-full flex flex-col items-center">
           {isAdmin ? (
