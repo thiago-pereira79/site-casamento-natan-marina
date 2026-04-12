@@ -1,0 +1,39 @@
+{
+  // Ignora avisos de regras desconhecidas do CSS, como @apply e @theme
+  "css.lint.unknownAtRules": "ignore",
+
+  // Associa arquivos .css ao Tailwind para melhor interpretação das diretivas
+  "files.associations": {
+    "*.css": "tailwindcss"
+  },
+
+  // Habilita sugestões e autocomplete do Tailwind
+  "editor.quickSuggestions": {
+    "strings": true
+  },
+
+  // Garante que o Tailwind seja reconhecido em diferentes tipos de arquivos
+  "tailwindCSS.includeLanguages": {
+    "typescript": "javascript",
+    "typescriptreact": "javascript",
+    "javascript": "javascript",
+    "javascriptreact": "javascript",
+    "html": "html"
+  },
+
+  // Melhora a detecção das classes do Tailwind dentro de funções ou templates
+  "tailwindCSS.experimental.classRegex": [
+    ["clsx\\(([^)]*)\\)", "(?:'|\"|`)([^'\"`]*)(?:'|\"|`)"],
+    ["className\\s*=\\s*['\"]([^'\"]*)['\"]"]
+  ],
+
+  // Evita alertas desnecessários quando o Tailwind está corretamente configurado
+  "tailwindCSS.validate": true,
+
+  // (Opcional) Remove sugestões automáticas de classes canônicas do Tailwind
+  // Caso queira parar de ver avisos como "can be written as..."
+  "tailwindCSS.lint.recommendedVariantOrder": "ignore",
+  "tailwindCSS.lint.invalidApply": "error",
+  "tailwindCSS.lint.cssConflict": "warning",
+  "tailwindCSS.lint.suggestCanonicalClasses": "ignore"
+}

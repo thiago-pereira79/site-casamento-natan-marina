@@ -9,7 +9,6 @@ export default async function handler(req: any, res: any) {
   console.log("RSVP recebido:", {
     name,
     phone,
-    email,
     guests,
     attending
   });
