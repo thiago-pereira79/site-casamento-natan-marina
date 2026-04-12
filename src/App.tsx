@@ -22,7 +22,7 @@ import casal10 from "./assets/casal10.jpeg";
 import casal11 from "./assets/casal11.jpeg";
 import casal12 from "./assets/casal12.jpeg";
 import presentesImg from "./assets/Presentes.jpg";
-import rose from "./assets/rose.jpg";
+import azul from "./assets/azul.jpg";
 import { supabase } from "../lib/supabase";
 
 function ScrollToTop() {
@@ -1601,13 +1601,13 @@ function GaleriaPage() {
       title: "Fotos do Casal",
       subtitle: "Nossa história",
       path: "/galeria/casal",
-      image: rose
+      image: azul
     },
     {
       title: "Registros do Evento",
       subtitle: "O grande dia",
       path: "/galeria/evento",
-      image: rose
+      image: azul
     }
   ];
 
