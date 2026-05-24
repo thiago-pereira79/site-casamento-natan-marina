@@ -688,8 +688,8 @@ function CasalPage() {
 }
 
 function LocalPage() {
-  const address = "Avenida Cavalheiro Paschoal Innecchi, 1801, Independência, Ribeirão Preto - SP";
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`;
+  const address = "Rua João Nutti, 761, Jardim Paulista, Ribeirão Preto - SP, 14090-290";
+  const mapsUrl = "https://goo.gl/maps/fRUmpbQeZGWNvv6Q6";
   const embedUrl = `https://www.google.com/maps?q=${encodeURIComponent(address)}&output=embed`;
 
   return (
@@ -729,11 +729,13 @@ function LocalPage() {
                 <h3 className="editorial-title font-normal mb-3" style={{ fontSize: "clamp(1.5rem, 1.2rem + 1vw, 2.2rem)" }}>
                   Endereço
                 </h3>
-                <p className="body-text text-text-dark">
-                  Avenida Cavalheiro Paschoal Innecchi, 1801
-                  <br />
-                  Independência, Ribeirão Preto - SP
-                </p>
+               <p className="body-text text-text-dark">
+  Rua João Nutti, 761
+  <br />
+  Jardim Paulista, Ribeirão Preto - SP
+  <br />
+  CEP: 14090-290
+</p>
               </div>
 
               <a
