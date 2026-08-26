@@ -1,4 +1,4 @@
-# 💍 Natan & Marina — Nosso Dia
+# 💍 Natan & Marina - Nosso Dia
 
 ![Status](https://img.shields.io/badge/Status-Em%20produção-brightgreen)
 ![React](https://img.shields.io/badge/React-20232A?style=flat&logo=react&logoColor=61DAFB)
@@ -19,6 +19,14 @@ Mais do que um site tradicional, o projeto foi concebido como um **álbum contem
 A proposta é permitir que esse momento continue sendo revisitado ao longo do tempo, não apenas como uma coleção de fotografias, mas como uma narrativa visual.
 
 > Uma história para ser guardada.
+
+---
+
+# 🌐 Acesse o site
+
+**[Visitar o álbum digital →](https://site-casamento-natan-marina.vercel.app/)**
+
+O projeto está disponível publicamente em ambiente de produção.
 
 ---
 
