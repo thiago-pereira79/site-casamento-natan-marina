@@ -1,0 +1,287 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-display: "Cormorant Garamond", serif;
+  --font-body: "Karla", sans-serif;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-cream: var(--cream);
+  --color-blush: var(--blush);
+  --color-dusty: var(--dusty);
+  --color-dusty-foreground: var(--dusty-foreground);
+  --color-gold: var(--gold);
+  --color-ink: var(--ink);
+  --color-muted-ink: var(--muted-ink);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-border: var(--border);
+  --color-ring: var(--ring);
+}
+
+:root {
+  --radius: 0.5rem;
+  --background: #f4ece8;
+  --foreground: #2b3a44;
+  --cream: #f4ece8;
+  --blush: #f9f5f4;
+  --dusty: #7e95a6;
+  --dusty-foreground: #f9f5f4;
+  --gold: #c6a769;
+  --ink: #2b3a44;
+  --muted-ink: #6b7a84;
+  --primary: #7e95a6;
+  --primary-foreground: #f9f5f4;
+  --border: #e3d2ae;
+  --ring: #c6a769;
+}
+
+body {
+  caret-color: transparent;
+}
+
+input,
+textarea,
+[contenteditable=""],
+[contenteditable="true"] {
+  caret-color: auto;
+}
+
+html[data-nm-welcome="seen"] .welcome-screen[data-phase="checking"] {
+  display: none;
+}
+
+.welcome-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  width: 100vw;
+  min-height: 100vh;
+  min-height: 100dvh;
+  place-items: center;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 48% 47%, rgb(255 253 250 / 92%) 0 19%, transparent 58%),
+    linear-gradient(112deg, #f7eee9 0%, #f9f1ed 48%, #f6ebe5 100%);
+  color: var(--ink);
+  opacity: 1;
+  transition: opacity 750ms ease;
+}
+
+.welcome-screen[data-phase="leaving"] {
+  opacity: 0;
+}
+
+.welcome-watercolor {
+  position: absolute;
+  width: min(48rem, 58vw);
+  aspect-ratio: 1;
+  border-radius: 46% 54% 58% 42% / 44% 48% 52% 56%;
+  background:
+    radial-gradient(circle at 34% 38%, rgb(221 174 145 / 13%) 0 7%, transparent 8%),
+    radial-gradient(circle at 58% 50%, rgb(227 181 153 / 11%) 0 18%, transparent 42%),
+    radial-gradient(circle at 44% 54%, rgb(235 205 184 / 22%) 0 30%, transparent 63%);
+  filter: blur(5px);
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.welcome-watercolor-top {
+  top: -24rem;
+  left: -13rem;
+  transform: rotate(18deg);
+}
+
+.welcome-watercolor-bottom {
+  right: -15rem;
+  bottom: -25rem;
+  transform: rotate(198deg);
+}
+
+.welcome-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  width: min(92vw, 58rem);
+  transform: translateY(2vh);
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.welcome-content > * {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+.welcome-screen[data-phase="visible"] .welcome-content > * {
+  animation: welcome-reveal 700ms ease forwards;
+}
+
+.welcome-screen[data-phase="visible"] .welcome-content > :nth-child(1) {
+  animation-delay: 40ms;
+}
+
+.welcome-screen[data-phase="visible"] .welcome-content > :nth-child(2) {
+  animation-delay: 110ms;
+}
+
+.welcome-screen[data-phase="visible"] .welcome-content > :nth-child(3) {
+  animation-delay: 180ms;
+}
+
+.welcome-screen[data-phase="visible"] .welcome-content > :nth-child(4) {
+  animation-delay: 230ms;
+}
+
+.welcome-screen[data-phase="visible"] .welcome-content > :nth-child(5) {
+  animation-delay: 280ms;
+}
+
+.welcome-monogram {
+  display: flex;
+  margin-top: 0;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.35rem, 1.4vw, 1rem);
+  color: var(--dusty);
+  font-family: var(--font-display);
+  font-size: clamp(5.75rem, 15vw, 13.5rem);
+  font-weight: 400;
+  letter-spacing: 0.01em;
+  line-height: 0.7;
+}
+
+.welcome-ampersand {
+  color: var(--gold);
+  font-size: 0.72em;
+  font-style: italic;
+}
+
+.welcome-date {
+  margin-top: clamp(2.7rem, 6vh, 4.4rem);
+  color: var(--gold);
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 2.7vw, 2.5rem);
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  line-height: 1;
+}
+
+.welcome-ornament {
+  display: flex;
+  margin-top: clamp(2rem, 4vh, 2.8rem);
+  align-items: center;
+  justify-content: center;
+  gap: 1.15rem;
+  color: var(--gold);
+}
+
+.welcome-ornament span {
+  width: clamp(3.1rem, 6vw, 6.4rem);
+  height: 1px;
+  background: color-mix(in srgb, var(--gold) 72%, transparent);
+}
+
+.welcome-ornament b {
+  font-size: 1rem;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.welcome-tagline {
+  margin-top: clamp(1.9rem, 3.8vh, 2.6rem);
+  color: var(--ink);
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 2.6vw, 2.35rem);
+  font-style: italic;
+  line-height: 1;
+}
+
+.welcome-enter-button {
+  position: relative;
+  box-sizing: border-box;
+  display: grid;
+  width: min(20.5rem, 82vw);
+  height: clamp(4rem, 8vh, 4.8rem);
+  margin-top: clamp(3.3rem, 7vh, 5rem);
+  place-items: center;
+  padding: 0 1.3rem;
+  border: 1px solid color-mix(in srgb, var(--gold) 82%, transparent);
+  border-radius: 0;
+  background: #f8efea;
+  color: var(--dusty);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 0.82rem;
+  font-weight: 500;
+  letter-spacing: 0.48em;
+  line-height: 1;
+  transition:
+    background-color 250ms ease,
+    color 250ms ease,
+    box-shadow 250ms ease;
+}
+
+.welcome-enter-button:hover {
+  border-color: var(--gold);
+  background: #f1e3da;
+  color: var(--ink);
+}
+
+.welcome-enter-button:focus-visible {
+  outline: 2px solid var(--dusty);
+  outline-offset: 5px;
+}
+
+@keyframes welcome-reveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 639px) {
+  .welcome-content {
+    width: min(91vw, 26rem);
+    transform: translateY(1vh);
+  }
+
+  .welcome-monogram {
+    margin-top: 0;
+  }
+
+  .welcome-date {
+    margin-top: clamp(2.4rem, 5.5vh, 3.2rem);
+    letter-spacing: 0.13em;
+  }
+
+  .welcome-enter-button {
+    margin-top: clamp(2.8rem, 6.5vh, 3.8rem);
+  }
+}
+
+@media (max-height: 660px) {
+  .welcome-content {
+    transform: scale(0.87);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .welcome-screen {
+    transition-duration: 1ms;
+  }
+
+  .welcome-screen[data-phase="visible"] .welcome-content > * {
+    animation-delay: 0ms;
+    animation-duration: 1ms;
+  }
+
+  .welcome-enter-button {
+    transition-duration: 1ms;
+  }
+}
